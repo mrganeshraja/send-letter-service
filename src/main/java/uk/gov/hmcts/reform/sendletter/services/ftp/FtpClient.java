@@ -17,7 +17,6 @@ import uk.gov.hmcts.reform.sendletter.model.Report;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.util.stream.Collectors.toList;
@@ -29,8 +28,10 @@ public class FtpClient {
     private static final Logger logger = LoggerFactory.getLogger(FtpClient.class);
 
     private final FtpConfigProperties configProperties;
-
     private final Supplier<SSHClient> sshClientSupplier;
+
+    private SSHClient sshClient;
+    private SFTPClient sftpClient;
 
     // region constructor
     public FtpClient(
@@ -43,71 +44,64 @@ public class FtpClient {
     // endregion
 
     public void upload(LocalSourceFile file, boolean isSmokeTestFile) {
-        runWith(sftp -> {
-            try {
-                String folder = isSmokeTestFile
-                    ? configProperties.getSmokeTestTargetFolder()
-                    : configProperties.getTargetFolder();
+        try {
+            String folder = isSmokeTestFile
+                ? configProperties.getSmokeTestTargetFolder()
+                : configProperties.getTargetFolder();
 
-                String path = String.join("/", folder, file.getName());
-                sftp.getFileTransfer().upload(file, path);
+            String path = String.join("/", folder, file.getName());
+            this.sftpClient.getFileTransfer().upload(file, path);
 
-                return null;
-            } catch (IOException exc) {
-                throw new FtpException("Unable to upload file.", exc);
-            }
-        });
+        } catch (IOException exc) {
+            throw new FtpException("Unable to upload file.", exc);
+        }
     }
 
     /**
      * Downloads ALL files from reports directory.
      */
     public List<Report> downloadReports() {
-        return runWith(sftp -> {
-            try {
-                SFTPFileTransfer transfer = sftp.getFileTransfer();
+        try {
+            SFTPFileTransfer transfer = sftpClient.getFileTransfer();
 
-                return sftp.ls(configProperties.getReportsFolder())
-                    .stream()
-                    .filter(this::isReportFile)
-                    .map(file -> {
-                        InMemoryDownloadedFile inMemoryFile = new InMemoryDownloadedFile();
-                        try {
-                            transfer.download(file.getPath(), inMemoryFile);
-                            return new Report(file.getPath(), inMemoryFile.getBytes());
-                        } catch (IOException exc) {
-                            throw new FtpException("Unable to download file " + file.getName(), exc);
-                        }
-                    })
-                    .collect(toList());
-            } catch (IOException exc) {
-                throw new FtpException("Error while downloading reports", exc);
-            }
-        });
+            return sftpClient
+                .ls(configProperties.getReportsFolder())
+                .stream()
+                .filter(this::isReportFile)
+                .map(file -> {
+                    InMemoryDownloadedFile inMemoryFile = new InMemoryDownloadedFile();
+                    try {
+                        transfer.download(file.getPath(), inMemoryFile);
+                        return new Report(file.getPath(), inMemoryFile.getBytes());
+                    } catch (IOException exc) {
+                        throw new FtpException("Unable to download file " + file.getName(), exc);
+                    }
+                })
+                .collect(toList());
+        } catch (IOException exc) {
+            throw new FtpException("Error while downloading reports", exc);
+        }
     }
 
     public void deleteReport(String reportPath) {
-        runWith(sftp -> {
-            try {
-                sftp.rm(reportPath);
-
-                return null;
-            } catch (Exception exc) {
-                throw new FtpException("Error while deleting report: " + reportPath, exc);
-            }
-        });
+        try {
+            this.sftpClient.rm(reportPath);
+        } catch (Exception exc) {
+            throw new FtpException("Error while deleting report: " + reportPath, exc);
+        }
     }
 
     public void testConnection() {
-        runWith(sftpClient -> null);
+        try {
+            this.connect();
+        } finally {
+            this.disconnect();
+        }
     }
 
-    private <T> T runWith(Function<SFTPClient, T> action) {
-        SSHClient ssh = null;
-
+    public void connect() {
         try {
-            ssh = sshClientSupplier.get();
-
+            SSHClient ssh = sshClientSupplier.get();
             ssh.addHostKeyVerifier(configProperties.getFingerprint());
             ssh.connect(configProperties.getHostname(), configProperties.getPort());
 
@@ -120,18 +114,20 @@ public class FtpClient {
                 )
             );
 
-            try (SFTPClient sftp = ssh.newSFTPClient()) {
-                return action.apply(sftp);
-            }
+            this.sshClient = ssh;
+            this.sftpClient = ssh.newSFTPClient();
+
         } catch (IOException exc) {
-            throw new FtpException("Unable to upload file.", exc);
-        } finally {
+            throw new FtpException("Unable to connect to SFTP.", exc);
+        }
+    }
+
+    public void disconnect() {
+        if (this.sshClient != null) {
             try {
-                if (ssh != null) {
-                    ssh.disconnect();
-                }
-            } catch (IOException e) {
-                logger.warn("Error closing ssh connection.", e);
+                this.sshClient.disconnect();
+            } catch (IOException exc) {
+                logger.warn("Error closing ssh connection.", exc);
             }
         }
     }
