@@ -60,7 +60,9 @@ public class FtpClientTest {
             .willReturn(singletonList(nonCsvFile));
 
         // when
+        client.connect();
         List<Report> reports = client.downloadReports();
+        client.disconnect();
 
         // then
         assertThat(reports).isEmpty();
@@ -72,7 +74,11 @@ public class FtpClientTest {
         willThrow(IOException.class).given(sftpClient).ls(anyString());
 
         // when
-        Throwable exception = catchThrowable(() -> client.downloadReports());
+        Throwable exception = catchThrowable(() -> {
+            client.connect();
+            client.downloadReports();
+            client.disconnect();
+        });
 
         // then
         assertThat(exception).isInstanceOf(FtpException.class);
@@ -82,6 +88,8 @@ public class FtpClientTest {
     public void should_upload_file_to_correct_folder_based_on_whether_its_a_smoke_test_or_not() throws Exception {
         given(ftpProps.getSmokeTestTargetFolder()).willReturn("smoke");
         given(ftpProps.getTargetFolder()).willReturn("regular");
+
+        client.connect();
 
         // when
         client.upload(new FileToSend("hello.zip", "hello".getBytes()), true);
@@ -94,7 +102,9 @@ public class FtpClientTest {
             );
 
         // when
+        client.connect();
         client.upload(new FileToSend("hello.zip", "hello".getBytes()), false);
+        client.disconnect();
 
         // then
         verify(sftpFileTransfer)
@@ -110,9 +120,11 @@ public class FtpClientTest {
         willThrow(IOException.class).given(sftpFileTransfer).upload(any(LocalSourceFile.class), anyString());
 
         // when
-        Throwable exception = catchThrowable(() ->
-            client.upload(new FileToSend("goodbye.zip", "goodbye".getBytes()), false)
-        );
+        Throwable exception = catchThrowable(() -> {
+            client.connect();
+            client.upload(new FileToSend("goodbye.zip", "goodbye".getBytes()), false);
+            client.disconnect();
+        });
 
         // then
         assertThat(exception).isInstanceOf(FtpException.class);
@@ -124,7 +136,11 @@ public class FtpClientTest {
         doNothing().when(sftpClient).rm(anyString());
 
         // when
-        Throwable exception = catchThrowable(() -> client.deleteReport("some/report"));
+        Throwable exception = catchThrowable(() -> {
+            client.connect();
+            client.deleteReport("some/report");
+            client.disconnect();
+        });
 
         // then
         assertThat(exception).isNull();
@@ -136,7 +152,11 @@ public class FtpClientTest {
         willThrow(IOException.class).given(sftpClient).rm(anyString());
 
         // when
-        Throwable exception = catchThrowable(() -> client.deleteReport("some/report"));
+        Throwable exception = catchThrowable(() -> {
+            client.connect();
+            client.deleteReport("some/report");
+            client.disconnect();
+        });
 
         // then
         assertThat(exception).isInstanceOf(FtpException.class);
