@@ -56,6 +56,7 @@ public class MarkLettersPostedTask {
 
         logger.info("Started '{}' task", MarkLettersPosted);
         try {
+            ftpClient.connect();
             ftpClient
                 .downloadReports()
                 .stream()
@@ -75,6 +76,8 @@ public class MarkLettersPostedTask {
             logger.info("Completed '{}' task", MarkLettersPosted);
         } catch (FtpException f) {
             logger.warn("Error fetching Xerox reports", f);
+        } finally {
+            ftpClient.disconnect();
         }
     }
 

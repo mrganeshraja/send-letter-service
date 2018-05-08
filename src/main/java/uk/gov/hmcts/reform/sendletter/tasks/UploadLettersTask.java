@@ -55,18 +55,23 @@ public class UploadLettersTask {
         List<Letter> letters;
         int counter = 0;
 
-        do {
-            letters = repo.findFirst10ByStatus(LetterStatus.Created);
-            letters
-                .forEach(letter -> {
-                    uploadToFtp(letter);
-                    markAsUploaded(letter);
-                });
-            counter += letters.size();
-        } while (!letters.isEmpty());
+        try {
+            ftp.connect();
+            do {
+                letters = repo.findFirst10ByStatus(LetterStatus.Created);
+                letters
+                    .forEach(letter -> {
+                        uploadToFtp(letter);
+                        markAsUploaded(letter);
+                    });
+                counter += letters.size();
+            } while (!letters.isEmpty());
 
-        if (counter > 0) {
-            insights.trackUploadedLetters(counter);
+            if (counter > 0) {
+                insights.trackUploadedLetters(counter);
+            }
+        } finally {
+            ftp.disconnect();
         }
 
         logger.info("Completed '{}' task", UploadLetters);
