@@ -74,11 +74,12 @@ public class BaseTest {
 
             // Wait for letter to be uploaded.
             await().atMost(15, SECONDS).untilAsserted(
-                () -> assertThat(server.lettersFolder.listFiles()).as("No letters uploaded!").isNotEmpty()
+                () -> assertThat(validLettersUploaded(server.lettersFolder, isEncryptionEnabled))
+                      .as("No letters uploaded!").isTrue()
             );
 
             // Generate Xerox report.
-            createXeroxReport(server, isEncryptionEnabled);
+            createXeroxReport(server);
 
             // The report should be processed and the letter marked posted.
             await().atMost(15, SECONDS).untilAsserted(
@@ -105,32 +106,48 @@ public class BaseTest {
         return letters.size() == 1 && letters.get(0).getStatus() == LetterStatus.Posted;
     }
 
-    private void createXeroxReport(LocalSftpServer server, Boolean isEncryptionEnabled) throws IOException {
-        try (Stream<UUID> letterIds = Arrays.stream(server.lettersFolder.listFiles())
-            .map(file -> validateGettingLetterId(file, isEncryptionEnabled))) {
+    private void createXeroxReport(LocalSftpServer server) throws IOException {
+        try (Stream<UUID> letterIds = Arrays.stream(server.lettersFolder.list())
+            .map(FileNameHelper::extractIdFromPdfName)) {
 
             XeroxReportWriter.writeReport(letterIds, server.reportFolder);
         }
     }
 
-    // returning the Letter's ID from the filename.
-    private UUID validateGettingLetterId(File file, Boolean isEncryptionEnabled) {
+    private boolean validLettersUploaded(File folder, boolean isEncryptionEnabled) {
+        if (folder.listFiles().length == 0) {
+            return false;
+        }
+        return Arrays.stream(folder.listFiles())
+            .allMatch(f -> isValidPdf(isEncryptionEnabled, f));
+    }
+
+    private boolean isValidPdf(boolean isEncryptionEnabled, File file) {
         try {
+            byte[] content = Files.readAllBytes(file.toPath());
+            if (content.length == 0) {
+                // File may still be being written to disk by FTP server.
+                return false;
+            }
             if (isEncryptionEnabled) {
                 // Decrypt encrypted zip file so that we can confirm if we are able to decrypt the encrypted zip
                 // using private key and passphrase
-                PgpDecryptionHelper.decryptFile(
-                    Files.readAllBytes(file.toPath()),
+                PgpDecryptionHelper.DecryptedFile decryptedFile = PgpDecryptionHelper.decryptFile(
+                    content,
                     getClass().getResourceAsStream("/encryption/privatekey.asc"),
                     "Password1".toCharArray()
                 );
-            } else {
-                PdfHelper.validateZippedPdf(Files.readAllBytes(file.toPath()));
-            }
 
-            return FileNameHelper.extractIdFromPdfName(file.getName());
+                assertThat(decryptedFile.filename).endsWith(".zip");
+                PdfHelper.validateZippedPdf(decryptedFile.content);
+
+            } else {
+                PdfHelper.validateZippedPdf(content);
+            }
         } catch (IOException | PGPException e) {
-            throw new RuntimeException(e);
+            // File may still be being written to disk by FTP server.
+            return false;
         }
+        return true;
     }
 }

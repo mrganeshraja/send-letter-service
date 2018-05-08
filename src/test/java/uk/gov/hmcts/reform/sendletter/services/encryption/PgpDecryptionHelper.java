@@ -33,7 +33,12 @@ public final class PgpDecryptionHelper {
      * decrypt the passed in message stream.
      */
     @SuppressWarnings("unchecked")
-    public static byte[] decryptFile(byte[] in, InputStream keyIn, char... passwd) throws IOException, PGPException {
+    public static DecryptedFile decryptFile(
+        byte[] in,
+        InputStream keyIn,
+        char... passwd
+    ) throws IOException, PGPException {
+
         Security.addProvider(new BouncyCastleProvider());
 
         PGPObjectFactory objectFactory = new PGPObjectFactory(in, new JcaKeyFingerprintCalculator());
@@ -93,17 +98,17 @@ public final class PgpDecryptionHelper {
             while ((ch = unc.read()) >= 0) {
                 byteArrayOutputStream.write(ch);
             }
+
+            if (pbe.isIntegrityProtected() && !pbe.verify()) {
+                throw new PGPException("Message failed integrity check");
+            }
+
+            return new DecryptedFile(ld.getFileName(), byteArrayOutputStream.toByteArray());
         } else if (message instanceof PGPOnePassSignatureList) {
             throw new PGPException("Encrypted message contains a signed message - not literal data.");
         } else {
             throw new PGPException("Message is not a simple encrypted file - type unknown.");
         }
-
-        if (pbe.isIntegrityProtected() && !pbe.verify()) {
-            throw new PGPException("Message failed integrity check");
-        }
-
-        return byteArrayOutputStream.toByteArray();
     }
 
     private static PGPPrivateKey findPrivateKey(InputStream keyIn, long keyId, char... pass)
@@ -127,5 +132,15 @@ public final class PgpDecryptionHelper {
                 new BcPGPDigestCalculatorProvider()
             ).build(pass);
         return pgpSecKey.extractPrivateKey(decryptor);
+    }
+
+    public static class DecryptedFile {
+        public final String filename;
+        public final byte[] content;
+
+        public DecryptedFile(String filename, byte[] content) {
+            this.filename = filename;
+            this.content = content;
+        }
     }
 }

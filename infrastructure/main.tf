@@ -4,10 +4,6 @@ provider "vault" {
   address = "https://vault.reform.hmcts.net:6200"
 }
 
-locals {
-  db_connection_options = "?ssl=true"
-}
-
 # Make sure the resource group exists
 resource "azurerm_resource_group" "rg" {
   name     = "${var.product}-${var.component}-${var.env}"
@@ -37,20 +33,34 @@ data "vault_generic_secret" "encryption_public_key" {
 
 locals {
   ase_name               = "${data.terraform_remote_state.core_apps_compute.ase_name[0]}"
+
   ftp_private_key        = "${replace(data.vault_generic_secret.ftp_private_key.data["value"], "\\n", "\n")}"
   ftp_public_key         = "${replace(data.vault_generic_secret.ftp_public_key.data["value"], "\\n", "\n")}"
   ftp_user               = "${data.vault_generic_secret.ftp_user.data["value"]}"
+
   encryption_public_key  = "${replace(data.vault_generic_secret.encryption_public_key.data["value"], "\\n", "\n")}"
-  s2s_url                = "http://rpe-service-auth-provider-${var.env}.service.${local.ase_name}.internal"
+
+  local_env              = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "aat" : "saat" : var.env}"
+  local_ase              = "${(var.env == "preview" || var.env == "spreview") ? (var.env == "preview" ) ? "core-compute-aat" : "core-compute-saat" : local.ase_name}"
+
+  s2s_url                = "http://rpe-service-auth-provider-${local.local_env}.service.${local.local_ase}.internal"
+
+  previewVaultName       = "${var.product}-send-letter"
+  nonPreviewVaultName    = "${var.product}-send-letter-${var.env}"
+  vaultName              = "${(var.env == "preview" || var.env == "spreview") ? local.previewVaultName : local.nonPreviewVaultName}"
+
+  db_connection_options  = "?ssl=true"
 }
 
 module "db" {
-  source              = "git@github.com:hmcts/moj-module-postgres.git?ref=master"
-  product             = "${var.product}-db"
+  source              = "git@github.com:hmcts/moj-module-postgres?ref=cnp-449-tactical"
+  product             = "${var.product}-${var.component}-db"
   location            = "${var.location_db}"
   env                 = "${var.env}"
-  postgresql_database = "postgres"
-  postgresql_user     = "letter_tracking"
+  database_name       = "send_letter"
+  postgresql_user     = "send_letter"
+  sku_name            = "GP_Gen5_2"
+  sku_tier            = "GeneralPurpose"
 }
 
 module "send-letter-service" {
@@ -91,8 +101,9 @@ module "send-letter-service" {
 }
 
 # region save DB details to Azure Key Vault
-module "key-vault" {
+module "send-letter-key-vault" {
   source              = "git@github.com:hmcts/moj-module-key-vault?ref=master"
+  name                = "${local.vaultName}"
   product             = "${var.product}"
   env                 = "${var.env}"
   tenant_id           = "${var.tenant_id}"
@@ -105,30 +116,30 @@ module "key-vault" {
 resource "azurerm_key_vault_secret" "POSTGRES-USER" {
   name      = "${var.component}-POSTGRES-USER"
   value     = "${module.db.user_name}"
-  vault_uri = "${module.key-vault.key_vault_uri}"
+  vault_uri = "${module.send-letter-key-vault.key_vault_uri}"
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES-PASS" {
   name      = "${var.component}-POSTGRES-PASS"
   value     = "${module.db.postgresql_password}"
-  vault_uri = "${module.key-vault.key_vault_uri}"
+  vault_uri = "${module.send-letter-key-vault.key_vault_uri}"
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_HOST" {
   name      = "${var.component}-POSTGRES-HOST"
   value     = "${module.db.host_name}"
-  vault_uri = "${module.key-vault.key_vault_uri}"
+  vault_uri = "${module.send-letter-key-vault.key_vault_uri}"
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
   name      = "${var.component}-POSTGRES-PORT"
   value     = "${module.db.postgresql_listen_port}"
-  vault_uri = "${module.key-vault.key_vault_uri}"
+  vault_uri = "${module.send-letter-key-vault.key_vault_uri}"
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
   name      = "${var.component}-POSTGRES-DATABASE"
   value     = "${module.db.postgresql_database}"
-  vault_uri = "${module.key-vault.key_vault_uri}"
+  vault_uri = "${module.send-letter-key-vault.key_vault_uri}"
 }
 # endregion

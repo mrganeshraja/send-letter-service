@@ -1,6 +1,5 @@
 variable "product" {
   type    = "string"
-  default = "send-letter-2"
 }
 
 variable "component" {
@@ -14,7 +13,7 @@ variable "location_app" {
 
 variable "location_db" {
   type    = "string"
-  default = "West Europe"
+  default = "UK South"
 }
 
 variable "env" {
@@ -47,7 +46,7 @@ variable encyption_enabled {
 }
 
 variable scheduling_enabled {
-  default = "true"
+  default = "false"
 }
 
 variable "ftp_hostname" {
@@ -76,4 +75,8 @@ variable "ftp_reports_folder" {
 
 variable "ftp_reports_cron" {
   default = "0 30 0 * * *"
+}
+
+variable "deployment_namespace" {
+  default = ""
 }

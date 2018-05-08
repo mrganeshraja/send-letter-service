@@ -1,20 +1,20 @@
 package uk.gov.hmcts.reform.sendletter.services;
 
-import org.apache.sshd.SshServer;
-import org.apache.sshd.common.Session;
-import org.apache.sshd.common.file.FileSystemView;
-import org.apache.sshd.common.file.nativefs.NativeFileSystemFactory;
-import org.apache.sshd.common.file.nativefs.NativeFileSystemView;
-import org.apache.sshd.server.command.ScpCommandFactory;
+import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
+import org.apache.sshd.common.session.Session;
+import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.apache.sshd.sftp.subsystem.SftpSubsystem;
+import org.apache.sshd.server.scp.ScpCommandFactory;
+import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.security.Security;
-import java.util.Arrays;
+
+import static java.util.Collections.singletonList;
 
 public final class LocalSftpServer implements AutoCloseable {
     private final SshServer sshd;
@@ -57,21 +57,17 @@ public final class LocalSftpServer implements AutoCloseable {
         this.lettersFolder = lettersFolder;
         this.reportFolder = reportFolder;
         sshd = SshServer.setUpDefaultServer();
-
-        sshd.setFileSystemFactory(new NativeFileSystemFactory() {
+        sshd.setFileSystemFactory(new VirtualFileSystemFactory() {
             @Override
-            public FileSystemView createFileSystemView(final Session session) {
-                return new NativeFileSystemView(session.getUsername(), false) {
-                    @Override
-                    public String getVirtualUserDir() {
-                        return LocalSftpServer.this.rootFolder.getAbsolutePath();
-                    }
-                };
+            protected Path computeRootDir(Session session) throws IOException  {
+                return rootFolder.toPath();
             }
         });
 
         sshd.setPort(port);
-        sshd.setSubsystemFactories(Arrays.asList(new SftpSubsystem.Factory()));
+        SftpSubsystemFactory factory = new SftpSubsystemFactory.Builder().withShutdownOnExit(true).build();
+
+        sshd.setSubsystemFactories(singletonList(factory));
         sshd.setCommandFactory(new ScpCommandFactory());
         sshd.setKeyPairProvider(new SimpleGeneratorHostKeyProvider());
         // Disable SSL and password checks.

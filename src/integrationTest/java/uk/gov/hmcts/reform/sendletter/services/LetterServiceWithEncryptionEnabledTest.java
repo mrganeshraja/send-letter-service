@@ -66,13 +66,13 @@ public class LetterServiceWithEncryptionEnabledTest {
 
         byte[] encryptedZip = letterInDb.getFileContent();
 
-        byte[] decryptedZip = PgpDecryptionHelper.decryptFile(
+        PgpDecryptionHelper.DecryptedFile decryptedZip = PgpDecryptionHelper.decryptFile(
             encryptedZip,
             getClass().getResourceAsStream("/encryption/privatekey.asc"),
             "Password1".toCharArray()
         );
         //then
         //We don't have the original zip so just verifying if we could decrypt the encrypted file.
-        assertThat(decryptedZip).isNotEmpty();
+        assertThat(decryptedZip.content).isNotEmpty();
     }
 }

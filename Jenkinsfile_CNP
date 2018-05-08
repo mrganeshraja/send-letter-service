@@ -1,5 +1,12 @@
 #!groovy
-@Library("Infrastructure") _
+
+@Library("Infrastructure")
+
+def type = "java"
+def product = "rpe"
+def component = "send-letter-service"
+
+def channel = '#rpe-build-notices'
 
 List<LinkedHashMap<String, Object>> secrets = [
   secret('test-s2s-name', 'TEST_S2S_NAME'),
@@ -24,19 +31,12 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
   ]
 }
 
-properties([
-  parameters([
-    string(name: 'PRODUCT_NAME', defaultValue: 'rpe', description: ''),
-    string(name: 'APP', defaultValue: 'send-letter-service', description: ''),
-    string(name: 'TYPE', defaultValue: 'java', description: ''),
-    string(name: 'ENVIRONMENT', defaultValue: 'sandbox', description: 'Environment where code should be build and deployed'),
-    choice(name: 'SUBSCRIPTION', choices: 'sandbox', description: 'Azure subscriptions available to build in')
-  ]),
-  [$class: 'GithubProjectProperty', projectUrlStr: 'github.com/hmcts/send-letter-service'],
-  pipelineTriggers([[$class: 'GitHubPushTrigger']])
-])
+withPipeline(type , product, component) {
+   after('test') {
+        sh './gradlew integration'
+   }
 
-withParameterizedPipeline(params.TYPE, params.PRODUCT_NAME, params.APP, params.ENVIRONMENT, params.SUBSCRIPTION) {
   enableDbMigration()
+  enableSlackNotifications(channel)
   loadVaultSecrets(secrets)
 }

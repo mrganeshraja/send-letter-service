@@ -55,7 +55,7 @@ ftp:
     from: ${FTP_DOWNTIME_FROM:16:00}
     to: ${FTP_DOWNTIME_TO:17:00}
 
-scheduling.enabled: ${SCHEDULING_ENABLED:true}
+scheduling.enabled: ${SCHEDULING_ENABLED:false}
 
 tasks:
   upload-letters-interval-ms: ${UPLOAD_LETTERS_INTERVAL:30000}

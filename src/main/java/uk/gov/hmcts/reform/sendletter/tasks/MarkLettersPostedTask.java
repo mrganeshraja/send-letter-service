@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.sendletter.entity.Letter;
 import uk.gov.hmcts.reform.sendletter.entity.LetterRepository;
 import uk.gov.hmcts.reform.sendletter.entity.LetterStatus;
+import uk.gov.hmcts.reform.sendletter.exception.FtpException;
 import uk.gov.hmcts.reform.sendletter.logging.AppInsights;
 import uk.gov.hmcts.reform.sendletter.model.LetterPrintStatus;
 import uk.gov.hmcts.reform.sendletter.services.ReportParser;
@@ -48,9 +49,13 @@ public class MarkLettersPostedTask {
     }
 
     public void run(LocalTime now) {
-        if (ftpAvailabilityChecker.isFtpAvailable(now)) {
-            logger.info("Started '{}' task", MarkLettersPosted);
+        if (!ftpAvailabilityChecker.isFtpAvailable(now)) {
+            logger.info("Not processing '{}' task due to FTP downtime window", MarkLettersPosted);
+            return;
+        }
 
+        logger.info("Started '{}' task", MarkLettersPosted);
+        try {
             ftpClient
                 .downloadReports()
                 .stream()
@@ -68,8 +73,8 @@ public class MarkLettersPostedTask {
                 });
 
             logger.info("Completed '{}' task", MarkLettersPosted);
-        } else {
-            logger.info("Not processing '{}' task due to FTP downtime window", MarkLettersPosted);
+        } catch (FtpException f) {
+            logger.warn("Error fetching Xerox reports", f);
         }
     }
 

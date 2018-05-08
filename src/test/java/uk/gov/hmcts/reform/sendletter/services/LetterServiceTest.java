@@ -112,8 +112,7 @@ public class LetterServiceTest {
     @Test
     public void should_throw_unable_to_load_pgp_pub_key_exc_on_init_when_enc_enabled_and_invalid_pub_key_is_passed() {
         assertThatThrownBy(() -> createLetterService(true, "This is not a proper pgp public key"))
-            .isInstanceOf(UnableToLoadPgpPublicKeyException.class)
-            .hasMessage("PGP Public key object could not be constructed");
+            .isInstanceOf(UnableToLoadPgpPublicKeyException.class);
     }
 
     @Test

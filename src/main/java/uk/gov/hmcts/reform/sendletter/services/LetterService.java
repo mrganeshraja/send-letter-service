@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.sendletter.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.util.Asserts;
-import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,14 +18,11 @@ import uk.gov.hmcts.reform.sendletter.model.in.LetterRequest;
 import uk.gov.hmcts.reform.sendletter.model.in.LetterWithPdfsRequest;
 import uk.gov.hmcts.reform.sendletter.model.out.LetterStatus;
 import uk.gov.hmcts.reform.sendletter.services.encryption.PgpEncryptionUtil;
-import uk.gov.hmcts.reform.sendletter.services.encryption.UnableToLoadPgpPublicKeyException;
-import uk.gov.hmcts.reform.sendletter.services.encryption.UnableToPgpEncryptZipFileException;
 import uk.gov.hmcts.reform.sendletter.services.pdf.PdfCreator;
 import uk.gov.hmcts.reform.sendletter.services.util.FileNameHelper;
 import uk.gov.hmcts.reform.sendletter.services.util.FinalPackageFileNameHelper;
 import uk.gov.hmcts.reform.sendletter.services.zip.Zipper;
 
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -130,44 +126,19 @@ public class LetterService {
             serviceName,
             createdAt,
             id,
-            true
+            false
         );
 
-        try {
-            return PgpEncryptionUtil.encryptFile(zipContent, zipFileName, pgpPublicKey, true);
-
-        } catch (IOException ioException) {
-            log.error(
-                "Error occurred while loading public key encryption",
-                ioException
-            );
-            throw new UnableToLoadPgpPublicKeyException("PGP Public key object could not be constructed", ioException);
-        } catch (PGPException pgpException) {
-            log.error(
-                String.format("Error occurred during encrypting zip file: %s", zipFileName),
-                pgpException
-            );
-
-            throw new UnableToPgpEncryptZipFileException(pgpException);
-        }
+        return PgpEncryptionUtil.encryptFile(zipContent, zipFileName, pgpPublicKey);
     }
 
     private PGPPublicKey loadPgpPublicKey(String encryptionPublicKey) {
         if (!isEncryptionEnabled) {
             log.info("Encryption is not enabled hence not loading the public key");
             return null;
-        }
-
-        Asserts.notNull(encryptionPublicKey, "encryptionPublicKey");
-
-        try {
+        } else {
+            Asserts.notNull(encryptionPublicKey, "encryptionPublicKey");
             return PgpEncryptionUtil.loadPublicKey(encryptionPublicKey.getBytes());
-        } catch (IOException ioException) {
-            log.error(
-                "Error occurred while loading public key encryption",
-                ioException
-            );
-            throw new UnableToLoadPgpPublicKeyException("PGP Public key object could not be constructed", ioException);
         }
     }
 

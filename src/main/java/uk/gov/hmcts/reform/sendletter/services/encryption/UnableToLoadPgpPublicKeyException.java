@@ -11,11 +11,7 @@ public class UnableToLoadPgpPublicKeyException extends UnknownErrorCodeException
 
     private static final long serialVersionUID = -5621910255408117685L;
 
-    public UnableToLoadPgpPublicKeyException(String message) {
-        super(AlertLevel.P1, message);
-    }
-
-    public UnableToLoadPgpPublicKeyException(String message, Throwable cause) {
-        super(AlertLevel.P1, message, cause);
+    public UnableToLoadPgpPublicKeyException(Throwable cause) {
+        super(AlertLevel.P1, cause);
     }
 }

@@ -36,32 +36,30 @@ public final class SerialTaskRunner {
      * supplied Runnable is simply not executed.
      */
     void tryRun(Task task, Runnable runnable) {
-        int id = task.getLockId();
-        String name = task.name();
-        log.info("Trying to lock {}", name);
+        log.info("Trying to lock {}", task);
 
         try (Connection connection = source.getConnection()) {
             boolean locked = false;
             try {
-                if (tryLock(id, connection)) {
-                    log.info("Acquired lock {}", name);
+                if (tryLock(task, connection)) {
+                    log.info("Acquired lock {}", task);
                     locked = true;
                     runnable.run();
                 } else {
-                    log.info("Failed to acquire lock {}", name);
+                    log.info("Failed to acquire lock {}", task);
                 }
             } finally {
                 if (locked) {
                     try {
-                        if (unlock(id, connection)) {
-                            log.info("Released lock {}", name);
+                        if (unlock(task, connection)) {
+                            log.info("Released lock {}", task);
                         } else {
-                            log.warn("Failed to release lock {}", name);
+                            log.warn("Failed to release lock {}", task);
                         }
                     } catch (SQLException s) {
                         // Avoid throwing an Exception from this block
                         // since it will mask any Exception thrown by the task.
-                        log.error("Exception unlocking task {}", name, s);
+                        log.error("Exception unlocking task {}", task, s);
                     }
                 }
             }
@@ -79,13 +77,13 @@ public final class SerialTaskRunner {
      * <p>https://www.postgresql.org/docs/9.4/static/explicit-locking.html#ADVISORY-LOCKS
      * @return true if lock is acquired, false otherwise
      */
-    private boolean tryLock(int id, Connection connection) throws SQLException {
-        String sql = String.format("SELECT pg_try_advisory_lock(%d, %d);", LOCK_NAMESPACE, id);
+    private boolean tryLock(Task task, Connection connection) throws SQLException {
+        String sql = String.format("SELECT pg_try_advisory_lock(%d, %d);", LOCK_NAMESPACE, task.getLockId());
         return executeReturningBool(connection, sql);
     }
 
-    private boolean unlock(int id, Connection connection) throws SQLException {
-        String sql = String.format("SELECT pg_advisory_unlock(%d, %d);", LOCK_NAMESPACE, id);
+    private boolean unlock(Task task, Connection connection) throws SQLException {
+        String sql = String.format("SELECT pg_advisory_unlock(%d, %d);", LOCK_NAMESPACE, task.getLockId());
         return executeReturningBool(connection, sql);
     }
 
@@ -97,8 +95,9 @@ public final class SerialTaskRunner {
         try (ResultSet set = connection.createStatement().executeQuery(sql)) {
             if (set.next()) {
                 return set.getBoolean(1);
+            } else {
+                return false;
             }
-            return false;
         }
     }
 }
