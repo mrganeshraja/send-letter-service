@@ -44,6 +44,7 @@ public class FtpClient {
     // endregion
 
     public void upload(LocalSourceFile file, boolean isSmokeTestFile) {
+        assertConnected();
         try {
             String folder = isSmokeTestFile
                 ? configProperties.getSmokeTestTargetFolder()
@@ -61,6 +62,7 @@ public class FtpClient {
      * Downloads ALL files from reports directory.
      */
     public List<Report> downloadReports() {
+        assertConnected();
         try {
             SFTPFileTransfer transfer = sftpClient.getFileTransfer();
 
@@ -126,9 +128,17 @@ public class FtpClient {
         if (this.sshClient != null) {
             try {
                 this.sshClient.disconnect();
+                this.sshClient = null;
+                this.sftpClient = null;
             } catch (IOException exc) {
                 logger.warn("Error closing ssh connection.", exc);
             }
+        }
+    }
+
+    private void assertConnected() {
+        if (this.sftpClient == null) {
+            throw new IllegalStateException("Not connected");
         }
     }
 
