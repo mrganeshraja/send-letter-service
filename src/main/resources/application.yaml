@@ -14,28 +14,19 @@ spring:
   application:
     name: Send Letter Provider
   datasource:
+    driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://${LETTER_TRACKING_DB_HOST:send-letter-database}:${LETTER_TRACKING_DB_PORT:5432}/${LETTER_TRACKING_DB_NAME:letter_tracking}${LETTER_TRACKING_DB_CONN_OPTIONS:}
     username: ${LETTER_TRACKING_DB_USER_NAME:letterservice}
     password: ${LETTER_TRACKING_DB_PASSWORD:}
     properties:
       charSet: UTF-8
-    tomcat:
-      max-active: 10
-      max-idle: 10
-      min-idle: 2
-      max-wait: 10000
-      test-on-borrow: true
-      test-on-connect: true
-      test-on-idle: true
-      validation-query: "SELECT 1"
-      time-between-eviction-runs-millis: 10000
-      test-while-idle: true
-      test-on-return: true
-      remove-abandoned: true
-      # Allow connections 2 hours idle before timing out.
-      remove-abandoned-timeout: 7200
-      log-abandoned: true
-      abandon-when-percentage-full: 0
+    hikari:
+      minimumIdle: 2
+      maximumPoolSize: 10
+      idleTimeout: 10000
+      poolName: SendLetterHikariCP
+      maxLifetime: 7200000
+      connectionTimeout: 30000
   jpa:
     properties:
       hibernate:
