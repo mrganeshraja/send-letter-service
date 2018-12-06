@@ -47,7 +47,7 @@ public class MarkLettersPostedTaskTest {
     @Test
     public void marks_uploaded_letters_as_posted() throws Exception {
         // Create a letter in the Uploaded state.
-        Letter letter = SampleData.letterEntity("testService");
+        Letter letter = SampleData.letterEntity("bulkprint");
         letter.setStatus(LetterStatus.Uploaded);
         repository.saveAndFlush(letter);
 

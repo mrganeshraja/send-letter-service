@@ -4,6 +4,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import net.schmizz.sshj.SSHClient;
 import uk.gov.hmcts.reform.sendletter.config.FtpConfigProperties;
+import uk.gov.hmcts.reform.sendletter.config.FtpConfigProperties.ServiceFolderMapping;
 import uk.gov.hmcts.reform.sendletter.logging.AppInsights;
 import uk.gov.hmcts.reform.sendletter.services.LocalSftpServer;
 import uk.gov.hmcts.reform.sendletter.services.ftp.FtpClient;
@@ -11,6 +12,7 @@ import uk.gov.hmcts.reform.sendletter.services.ftp.FtpClient;
 import java.io.IOException;
 import java.util.function.Supplier;
 
+import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.mock;
 
 public final class FtpHelper {
@@ -49,6 +51,10 @@ public final class FtpHelper {
         p.setFingerprint("SHA1:2Fo8c/96zv32xc8GZWbOGYOlRak=");
         p.setTargetFolder(LocalSftpServer.LETTERS_FOLDER_NAME);
         p.setReportsFolder(LocalSftpServer.REPORT_FOLDER_NAME);
+        ServiceFolderMapping serviceFolderMapping = new ServiceFolderMapping();
+        serviceFolderMapping.setService("bulkprint");
+        serviceFolderMapping.setFolder("BULKPRINT");
+        p.setServiceFolders(singletonList(serviceFolderMapping));
         return p;
     }
 }

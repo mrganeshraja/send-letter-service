@@ -58,6 +58,11 @@ ftp:
   downtime:
     from: ${FTP_DOWNTIME_FROM:16:00}
     to: ${FTP_DOWNTIME_TO:17:00}
+  service-folders:
+    - service: cmc_claim_store
+      folder: CMC
+    - service: send_letter_tests
+      folder: BULKPRINT
 
 scheduling:
   enabled: ${SCHEDULING_ENABLED:false}

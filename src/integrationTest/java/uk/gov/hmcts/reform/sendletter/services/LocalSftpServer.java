@@ -49,7 +49,9 @@ public final class LocalSftpServer implements AutoCloseable {
         workingDirectory.mkdir();
         File reportDirectory = new File(root, "reports");
         reportDirectory.mkdir();
-        return new LocalSftpServer(root, workingDirectory, reportDirectory);
+        File lettersFolder = new File(workingDirectory, "BULKPRINT");
+        lettersFolder.mkdir();
+        return new LocalSftpServer(root, lettersFolder, reportDirectory);
     }
 
     private LocalSftpServer(File root, File lettersFolder, File reportFolder) throws IOException {

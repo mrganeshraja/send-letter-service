@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.logging.exception.AbstractLoggingException;
 import uk.gov.hmcts.reform.sendletter.exception.DuplexException;
 import uk.gov.hmcts.reform.sendletter.exception.InternalServerException;
 import uk.gov.hmcts.reform.sendletter.exception.LetterNotFoundException;
+import uk.gov.hmcts.reform.sendletter.exception.ServiceNotConfiguredException;
 import uk.gov.hmcts.reform.sendletter.exception.UnauthenticatedException;
 import uk.gov.hmcts.reform.sendletter.model.out.errors.FieldError;
 import uk.gov.hmcts.reform.sendletter.model.out.errors.ModelValidationError;
@@ -29,6 +30,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.ResponseEntity.badRequest;
 import static org.springframework.http.ResponseEntity.status;
 
@@ -87,6 +89,12 @@ public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<String> handleUnauthenticatedException(UnauthenticatedException exc) {
         log.warn(exc.getMessage(), exc);
         return status(UNAUTHORIZED).build();
+    }
+
+    @ExceptionHandler(ServiceNotConfiguredException.class)
+    protected ResponseEntity<String> handleUnprocessableEntityException(ServiceNotConfiguredException exc) {
+        log.warn(exc.getMessage(), exc);
+        return status(UNPROCESSABLE_ENTITY).build();
     }
 
     @ExceptionHandler(Exception.class)

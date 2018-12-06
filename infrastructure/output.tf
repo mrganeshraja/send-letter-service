@@ -36,6 +36,10 @@ output "test_ftp_target_folder" {
   value = "${var.ftp_smoke_test_target_folder}"
 }
 
+output "ftp_target_folder" {
+  value = "${var.ftp_target_folder}"
+}
+
 output "test_encryption_enabled" {
   value = "${var.encyption_enabled}"
 }

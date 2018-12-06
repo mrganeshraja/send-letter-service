@@ -14,7 +14,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
     "scheduling.enabled=true",
     "tasks.upload-letters-interval-ms=1000",
     "tasks.mark-letters-posted=*/1 * * * * *",
-    "tasks.stale-letters-report=*/1 * * * * *"
+    "tasks.stale-letters-report=*/1 * * * * *",
+    "ftp.service-folders[0].service=some_service_name",
+    "ftp.service-folders[0].folder=BULKPRINT"
 })
 public class EndToEndTest extends BaseTest {
 

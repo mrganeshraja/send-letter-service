@@ -84,7 +84,7 @@ public class UploadLettersTask {
             letter.getFileContent()
         );
 
-        ftp.upload(file, isSmokeTest(letter));
+        ftp.upload(file, isSmokeTest(letter), letter.getService());
 
         logger.info(
             "Uploaded letter id: {}, messageId: {}, file name: {}, additional data: {}",

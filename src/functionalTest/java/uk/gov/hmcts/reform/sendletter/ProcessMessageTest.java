@@ -113,8 +113,10 @@ public class ProcessMessageTest extends FunctionalTestSuite {
 
         List<RemoteResourceInfo> matchingFiles;
 
+        String lettersFolder = String.join("/", ftpTargetFolder, "BULKPRINT");
+
         while (!now().after(waitUntil)) {
-            matchingFiles = sftp.ls(ftpTargetFolder, file -> file.getName().contains(letterId));
+            matchingFiles = sftp.ls(lettersFolder, file -> file.getName().contains(letterId));
 
             if (matchingFiles.size() == 1) {
                 return matchingFiles.get(0);

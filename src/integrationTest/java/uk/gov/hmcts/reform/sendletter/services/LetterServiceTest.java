@@ -39,7 +39,7 @@ import static uk.gov.hmcts.reform.sendletter.entity.LetterStatus.Uploaded;
 @ImportAutoConfiguration(SpyOnJpaConfig.class)
 public class LetterServiceTest {
 
-    private static final String SERVICE_NAME = "a_service";
+    private static final String SERVICE_NAME = "bulkprint";
 
     private LetterService service;
 

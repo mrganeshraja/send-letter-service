@@ -92,6 +92,10 @@ To run migration gradle task expects `FLYWAY_URL` to be present. In case db requ
 ./gradlew flywayMigrate
 ```
 
+## Onboarding new services
+
+Services team need to contact Bulk Scanning and Printing team to onboard their service.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details

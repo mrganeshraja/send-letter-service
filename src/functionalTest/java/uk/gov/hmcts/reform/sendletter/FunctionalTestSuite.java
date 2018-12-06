@@ -175,7 +175,7 @@ public abstract class FunctionalTestSuite {
     protected String getPdfFileNamePattern(String letterId) {
         return String.format(
             "%s_%s_%s.pdf",
-            Pattern.quote("smoke_test"),
+            Pattern.quote("BPS001"),
             Pattern.quote(s2sName.replace("_", "")),
             Pattern.quote(letterId)
         );
@@ -186,7 +186,7 @@ public abstract class FunctionalTestSuite {
 
         return String.format(
             format,
-            Pattern.quote("smoketest"),
+            Pattern.quote("BPS001"),
             Pattern.quote(s2sName.replace("_", "")),
             Pattern.quote(letterId)
         );

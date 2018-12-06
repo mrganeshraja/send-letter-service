@@ -30,10 +30,14 @@ import static uk.gov.hmcts.reform.sendletter.tasks.UploadLettersTask.SMOKE_TEST_
 @RunWith(MockitoJUnitRunner.class)
 public class UploadLettersTaskTest {
 
-    @Mock private LetterRepository repo;
-    @Mock private FtpClient ftpClient;
-    @Mock private FtpAvailabilityChecker availabilityChecker;
-    @Mock private AppInsights insights;
+    @Mock
+    private LetterRepository repo;
+    @Mock
+    private FtpClient ftpClient;
+    @Mock
+    private FtpAvailabilityChecker availabilityChecker;
+    @Mock
+    private AppInsights insights;
 
     private UploadLettersTask task;
 
@@ -53,11 +57,11 @@ public class UploadLettersTaskTest {
 
         givenDbContains(letterOfType(SMOKE_TEST_LETTER_TYPE));
         task.run();
-        verify(ftpClient).upload(any(), eq(true));
+        verify(ftpClient).upload(any(), eq(true), any());
 
         givenDbContains(letterOfType("not_" + SMOKE_TEST_LETTER_TYPE));
         task.run();
-        verify(ftpClient).upload(any(), eq(false));
+        verify(ftpClient).upload(any(), eq(false), any());
     }
 
     @Test
