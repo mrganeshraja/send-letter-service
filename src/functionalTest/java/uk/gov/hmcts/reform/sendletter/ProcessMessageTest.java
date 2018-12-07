@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.sendletter;
 
 import net.schmizz.sshj.sftp.SFTPClient;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -13,14 +14,15 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-public class ProcessMessageTest extends FunctionalTestSuite {
+public class ProcessMessageTest {
 
     private TestDsl dsl;
+
     private FtpTestDsl ftpDsl;
 
-    @Override
-    void initDsl() {
-        dsl = TestDsl.getInstance(config);
+    @BeforeEach
+    public void setUp() {
+        dsl = TestDsl.getInstance();
         ftpDsl = dsl.getFtpDsl();
     }
 
