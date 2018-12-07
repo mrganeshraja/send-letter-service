@@ -48,11 +48,7 @@ public class ProcessMessageTest {
             .withBodyTemplate(requestBodyFilename, templateFilename)
             .sendLetter();
 
-        try (SFTPClient sftp = ftpDsl.getSftpClient()) {
-            ftpDsl
-                .waitForFileOnSftp(sftp, letterId)
-                .validate(sftp, letterId, numberOfPages);
-        }
+        checkFtp(letterId, numberOfPages);
     }
 
     static Stream<Arguments> pdfProvider() {
@@ -74,6 +70,10 @@ public class ProcessMessageTest {
             .withPdfBody(requestBodyFilename)
             .sendLetter();
 
+        checkFtp(letterId, numberOfPages);
+    }
+
+    private void checkFtp(String letterId, int numberOfPages) throws IOException, InterruptedException {
         try (SFTPClient sftp = ftpDsl.getSftpClient()) {
             ftpDsl
                 .waitForFileOnSftp(sftp, letterId)
