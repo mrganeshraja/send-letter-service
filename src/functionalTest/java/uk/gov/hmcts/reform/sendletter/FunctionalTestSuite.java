@@ -4,9 +4,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.sftp.RemoteFile;
-import net.schmizz.sshj.sftp.SFTPClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -26,26 +24,8 @@ public abstract class FunctionalTestSuite {
     @Value("${s2s-name}")
     protected String s2sName;
 
-    @Value("${ftp-hostname}")
-    protected String ftpHostname;
-
-    @Value("${ftp-port}")
-    protected Integer ftpPort;
-
-    @Value("${ftp-fingerprint}")
-    protected String ftpFingerprint;
-
     @Value("${ftp-target-folder}")
     protected String ftpTargetFolder;
-
-    @Value("${ftp-user}")
-    protected String ftpUser;
-
-    @Value("${ftp-private-key}")
-    protected String ftpPrivateKey;
-
-    @Value("${ftp-public-key}")
-    protected String ftpPublicKey;
 
     @Value("${max-wait-for-ftp-file-in-ms}")
     protected int maxWaitForFtpFileInMs;
@@ -61,27 +41,6 @@ public abstract class FunctionalTestSuite {
     }
 
     abstract void initDsl();
-
-    protected String samplePdfLetterRequestJson(String requestBodyFilename) throws IOException {
-        String requestBody = Resources.toString(getResource(requestBodyFilename), Charsets.UTF_8);
-        byte[] pdf = toByteArray(getResource("test.pdf"));
-
-        return requestBody.replace("{{pdf}}", new String(Base64.getEncoder().encode(pdf)));
-    }
-
-    protected SFTPClient getSftpClient() throws IOException {
-        SSHClient ssh = new SSHClient();
-
-        ssh.addHostKeyVerifier(ftpFingerprint);
-        ssh.connect(ftpHostname, ftpPort);
-
-        ssh.authPublickey(
-            ftpUser,
-            ssh.loadKeys(ftpPrivateKey, ftpPublicKey, null)
-        );
-
-        return ssh.newSFTPClient();
-    }
 
     protected ZipInputStream getZipInputStream(RemoteFile zipFile) throws IOException {
         byte[] fileContent = new byte[(int) zipFile.length()];

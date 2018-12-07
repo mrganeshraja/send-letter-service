@@ -8,6 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import uk.gov.hmcts.reform.sendletter.dsl.FtpTestDsl;
 import uk.gov.hmcts.reform.sendletter.dsl.TestDsl;
 
 import java.io.IOException;
@@ -26,10 +27,12 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 public class ProcessMessageTest extends FunctionalTestSuite {
 
     private TestDsl dsl;
+    private FtpTestDsl ftpDsl;
 
     @Override
     void initDsl() {
         dsl = TestDsl.getInstance(config);
+        ftpDsl = dsl.getFtpDsl();
     }
 
     static Stream<Arguments> templateProvider() {
@@ -54,7 +57,7 @@ public class ProcessMessageTest extends FunctionalTestSuite {
             .withBodyTemplate(requestBodyFilename, templateFilename)
             .sendLetter();
 
-        try (SFTPClient sftp = getSftpClient()) {
+        try (SFTPClient sftp = ftpDsl.getSftpClient()) {
             RemoteResourceInfo sftpFile = waitForFileOnSftp(sftp, letterId);
 
             assertThat(sftpFile.getName()).matches(getFileNamePattern(letterId));

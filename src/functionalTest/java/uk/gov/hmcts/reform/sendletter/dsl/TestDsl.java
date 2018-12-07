@@ -23,4 +23,8 @@ public class TestDsl {
             s2sApi.signIn()
         );
     }
+
+    public FtpTestDsl getFtpDsl() {
+        return new FtpTestDsl(config);
+    }
 }
