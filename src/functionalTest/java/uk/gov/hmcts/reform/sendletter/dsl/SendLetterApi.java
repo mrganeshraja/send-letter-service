@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
-import com.typesafe.config.Config;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -19,7 +18,7 @@ class SendLetterApi implements Template {
 
     private final String sendLetterServiceUrl;
 
-    SendLetterApi(Config config) {
+    SendLetterApi(ConfigWrapper config) {
         this.sendLetterServiceUrl = config.getString("send-letter-service-url");
     }
 

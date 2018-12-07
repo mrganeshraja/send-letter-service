@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.sendletter.dsl;
 
-import com.typesafe.config.Config;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.sftp.RemoteFile;
 import net.schmizz.sshj.sftp.RemoteResourceInfo;
@@ -35,7 +34,7 @@ class Ftp {
 
     private final String ftpPublicKey;
 
-    Ftp(Config config) {
+    Ftp(ConfigWrapper config) {
         this.ftpHostname = config.getString("ftp-hostname");
         this.ftpPort = config.getInt("ftp-port");
         this.ftpFingerprint = config.getString("ftp-fingerprint");

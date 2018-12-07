@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.sendletter.dsl;
 
-import com.typesafe.config.Config;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.platform.commons.util.StringUtils;
 
@@ -18,7 +17,7 @@ class FtpFileValidator {
 
     private final String letterId;
 
-    FtpFileValidator(Config config, String letterId) {
+    FtpFileValidator(ConfigWrapper config, String letterId) {
         this.isEncryptionEnabled = config.getBoolean("encryption.enabled");
         this.s2sName = config.getString("s2s-name");
         this.letterId = letterId;

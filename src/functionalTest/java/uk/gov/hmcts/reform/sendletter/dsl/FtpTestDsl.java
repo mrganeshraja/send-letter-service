@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.sendletter.dsl;
 
-import com.typesafe.config.Config;
 import net.schmizz.sshj.sftp.RemoteResourceInfo;
 import net.schmizz.sshj.sftp.SFTPClient;
 
@@ -12,7 +11,7 @@ import static org.assertj.core.util.DateUtil.now;
 
 public class FtpTestDsl {
 
-    private final Config config;
+    private final ConfigWrapper config;
 
     private final Ftp ftp;
 
@@ -20,7 +19,7 @@ public class FtpTestDsl {
 
     private RemoteResourceInfo remoteResourceInfo = null;
 
-    FtpTestDsl(Config config) {
+    FtpTestDsl(ConfigWrapper config) {
         this.config = config;
         this.ftp = new Ftp(config);
         this.maxWaitForFtpFileInMs = config.getInt("max-wait-for-ftp-file-in-ms");

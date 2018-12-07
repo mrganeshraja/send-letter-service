@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.sendletter.dsl;
 
-import com.typesafe.config.Config;
-
 import java.io.IOException;
 
 public class LoggedInTestDsl {
@@ -17,7 +15,7 @@ public class LoggedInTestDsl {
 
     private ThrowingSupplier<byte[]> requestBody = () -> null;
 
-    LoggedInTestDsl(Config config, String s2sToken) {
+    LoggedInTestDsl(ConfigWrapper config, String s2sToken) {
         this.sendLetterApi = new SendLetterApi(config);
         this.s2sToken = s2sToken;
     }

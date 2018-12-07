@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.sendletter.dsl;
 
 import com.google.common.collect.ImmutableMap;
-import com.typesafe.config.Config;
 import com.warrenstrange.googleauth.GoogleAuthenticator;
 
 import java.util.Map;
@@ -18,7 +17,7 @@ class S2sApi implements Template {
 
     private final String s2sSecret;
 
-    S2sApi(Config config) {
+    S2sApi(ConfigWrapper config) {
         this.s2sUrl = config.getString("s2s-url");
         this.s2sName = config.getString("s2s-name");
         this.s2sSecret = config.getString("s2s-secret");

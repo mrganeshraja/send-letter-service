@@ -1,21 +1,18 @@
 package uk.gov.hmcts.reform.sendletter.dsl;
 
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-
 public class TestDsl {
 
-    private final Config config;
+    private final ConfigWrapper config;
 
     private final S2sApi s2sApi;
 
-    private TestDsl(Config config, S2sApi s2sApi) {
+    private TestDsl(ConfigWrapper config, S2sApi s2sApi) {
         this.config = config;
         this.s2sApi = s2sApi;
     }
 
     public static TestDsl getInstance() {
-        Config config = ConfigFactory.load();
+        ConfigWrapper config = ConfigWrapper.load();
 
         return new TestDsl(config, new S2sApi(config));
     }
