@@ -2,13 +2,20 @@ package uk.gov.hmcts.reform.sendletter.dsl;
 
 import com.typesafe.config.Config;
 import net.schmizz.sshj.SSHClient;
+import net.schmizz.sshj.sftp.RemoteFile;
 import net.schmizz.sshj.sftp.RemoteResourceInfo;
 import net.schmizz.sshj.sftp.SFTPClient;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.util.DateUtil.now;
 
@@ -78,5 +85,44 @@ class Ftp {
         }
 
         throw new AssertionError("The expected file didn't appear on SFTP server");
+    }
+
+    PdfFile processZipFile(SFTPClient sftp, RemoteResourceInfo remoteResourceInfo) throws IOException {
+        try (RemoteFile zipFile = sftp.open(remoteResourceInfo.getPath())) {
+            return unzipFile(zipFile);
+        }
+    }
+
+    private PdfFile unzipFile(RemoteFile zipFile) throws IOException {
+        try (ZipInputStream zipStream = getZipInputStream(zipFile)) {
+            ZipEntry firstEntry = zipStream.getNextEntry();
+            byte[] pdfContent = readAllBytes(zipStream);
+
+            ZipEntry secondEntry = zipStream.getNextEntry();
+            assertThat(secondEntry).as("second file in zip").isNull();
+
+            return new PdfFile(firstEntry.getName(), pdfContent);
+        }
+    }
+
+    private ZipInputStream getZipInputStream(RemoteFile zipFile) throws IOException {
+        byte[] fileContent = new byte[(int) zipFile.length()];
+        zipFile.read(0, fileContent, 0, (int) zipFile.length());
+
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(fileContent, 0, fileContent.length);
+
+        return new ZipInputStream(inputStream);
+    }
+
+    private byte[] readAllBytes(InputStream input) throws IOException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        byte[] buffer = new byte[10000];
+        int len;
+
+        while ((len = input.read(buffer)) > 0) {
+            output.write(buffer, 0, len);
+        }
+
+        return output.toByteArray();
     }
 }

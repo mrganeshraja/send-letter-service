@@ -12,13 +12,16 @@ import static org.assertj.core.util.DateUtil.now;
 
 public class FtpTestDsl {
 
+    private final Config config;
+
     private final Ftp ftp;
 
     private final int maxWaitForFtpFileInMs;
 
-    RemoteResourceInfo remoteResourceInfo = null;
+    private RemoteResourceInfo remoteResourceInfo = null;
 
     FtpTestDsl(Config config) {
+        this.config = config;
         this.ftp = new Ftp(config);
         this.maxWaitForFtpFileInMs = config.getInt("max-wait-for-ftp-file-in-ms");
     }
@@ -33,5 +36,17 @@ public class FtpTestDsl {
         remoteResourceInfo = ftp.waitForFile(waitUntil, sftp, letterId);
 
         return this;
+    }
+
+    public void validate(SFTPClient sftp, String letterId, int numberOfDocuments) throws IOException {
+        FtpFileValidator validator = new FtpFileValidator(config, letterId);
+        PdfFile pdfFile = validator.isEncryptionEnabled()
+            ? ftp.processZipFile(sftp, remoteResourceInfo)
+            : PdfFile.empty();
+
+        validator
+            .assertFileNameMatch(remoteResourceInfo.getName(), validator::getFtpFileNamePattern)
+            .assertFileNameMatch(pdfFile.name, validator::getPdfFileNamePattern)
+            .assertNumberOfDocuments(pdfFile.content, numberOfDocuments);
     }
 }
