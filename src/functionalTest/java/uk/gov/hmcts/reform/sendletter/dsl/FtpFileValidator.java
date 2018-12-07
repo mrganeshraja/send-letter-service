@@ -32,7 +32,7 @@ class FtpFileValidator {
         return this;
     }
 
-    FtpFileValidator assertNumberOfDocuments(byte[] pdf, int expectedNumberOfDocuments) throws IOException {
+    FtpFileValidator assertNumberOfPages(byte[] pdf, int expectedNumberOfDocuments) throws IOException {
         if (pdf != null && pdf.length > 0) {
             PDDocument pdfDocument = PDDocument.load(pdf);
             assertThat(pdfDocument.getNumberOfPages()).isEqualTo(expectedNumberOfDocuments);

@@ -39,7 +39,7 @@ public class ProcessMessageTest extends FunctionalTestSuite {
     public void sendLetterWithTemplate(
         String requestBodyFilename,
         String templateFilename,
-        int numberOfDocuments
+        int numberOfPages
     ) throws IOException, InterruptedException {
         String letterId = dsl
             .login()
@@ -49,7 +49,7 @@ public class ProcessMessageTest extends FunctionalTestSuite {
         try (SFTPClient sftp = ftpDsl.getSftpClient()) {
             ftpDsl
                 .waitForFileOnSftp(sftp, letterId)
-                .validate(sftp, letterId, numberOfDocuments);
+                .validate(sftp, letterId, numberOfPages);
         }
     }
 }
