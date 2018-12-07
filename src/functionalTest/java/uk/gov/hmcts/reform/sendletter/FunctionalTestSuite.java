@@ -24,12 +24,6 @@ public abstract class FunctionalTestSuite {
     @Value("${s2s-name}")
     protected String s2sName;
 
-    @Value("${ftp-target-folder}")
-    protected String ftpTargetFolder;
-
-    @Value("${max-wait-for-ftp-file-in-ms}")
-    protected int maxWaitForFtpFileInMs;
-
     @Value("${encryption.enabled}")
     protected Boolean isEncryptionEnabled;
 
