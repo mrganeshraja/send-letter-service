@@ -7,12 +7,13 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 
 import java.io.IOException;
+import java.util.Base64;
 import java.util.Iterator;
 
 import static com.google.common.io.Resources.getResource;
+import static com.google.common.io.Resources.toByteArray;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 class SendLetterApi implements Template {
 
@@ -22,10 +23,10 @@ class SendLetterApi implements Template {
         this.sendLetterServiceUrl = config.getString("send-letter-service-url");
     }
 
-    String sendPrintLetterRequest(String jwt, byte[] jsonBody) {
+    String sendPrintLetterRequest(String jwt, String contentType, byte[] jsonBody) {
         return getNewSpecification()
             .header("ServiceAuthorization", "Bearer " + jwt)
-            .header(CONTENT_TYPE, APPLICATION_JSON_VALUE)
+            .header(CONTENT_TYPE, contentType)
             .baseUri(this.sendLetterServiceUrl)
             .body(jsonBody)
             .when()
@@ -49,5 +50,12 @@ class SendLetterApi implements Template {
         }
 
         return requestBody.toString().getBytes();
+    }
+
+    byte[] samplePdfLetterRequestJson(String requestBodyFilename) throws IOException {
+        String requestBody = Resources.toString(getResource(requestBodyFilename), Charsets.UTF_8);
+        byte[] pdf = toByteArray(getResource("test.pdf"));
+
+        return requestBody.replace("{{pdf}}", new String(Base64.getEncoder().encode(pdf))).getBytes();
     }
 }

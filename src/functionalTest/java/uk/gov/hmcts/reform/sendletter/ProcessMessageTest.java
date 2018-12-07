@@ -54,4 +54,30 @@ public class ProcessMessageTest {
                 .validate(sftp, letterId, numberOfPages);
         }
     }
+
+    static Stream<Arguments> pdfProvider() {
+        return Stream.of(
+            arguments("letter-with-single-pdf.json", 2),
+            arguments("letter-with-two-pdfs.json", 4)
+        );
+    }
+
+    @DisplayName("Should send letter and upload file to SFTP server")
+    @ParameterizedTest
+    @MethodSource("pdfProvider")
+    public void sendLetterWithPdf(
+        String requestBodyFilename,
+        int numberOfPages
+    ) throws IOException, InterruptedException {
+        String letterId = dsl
+            .login()
+            .withPdfBody(requestBodyFilename)
+            .sendLetter();
+
+        try (SFTPClient sftp = ftpDsl.getSftpClient()) {
+            ftpDsl
+                .waitForFileOnSftp(sftp, letterId)
+                .validate(sftp, letterId, numberOfPages);
+        }
+    }
 }
