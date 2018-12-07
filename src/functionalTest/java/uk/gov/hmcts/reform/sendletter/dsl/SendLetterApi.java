@@ -23,7 +23,7 @@ class SendLetterApi implements Template {
         this.sendLetterServiceUrl = config.getString("send-letter-service-url");
     }
 
-    String sendPrintLetterRequest(String jwt, String jsonBody) {
+    String sendPrintLetterRequest(String jwt, byte[] jsonBody) {
         return getNewSpecification()
             .header("ServiceAuthorization", "Bearer " + jwt)
             .header(CONTENT_TYPE, APPLICATION_JSON_VALUE)
@@ -39,7 +39,7 @@ class SendLetterApi implements Template {
             .get("letter_id");
     }
 
-    String sampleLetterRequestJson(String requestBodyFilename, String templateFilename) throws IOException {
+    byte[] sampleLetterRequestJson(String requestBodyFilename, String templateFilename) throws IOException {
         String template = Resources.toString(getResource(templateFilename), Charsets.UTF_8);
         ObjectMapper mapper = new ObjectMapper();
         JsonNode requestBody = mapper.readTree(getResource(requestBodyFilename));
@@ -49,6 +49,6 @@ class SendLetterApi implements Template {
             ((ObjectNode) documents.next()).put("template", template);
         }
 
-        return requestBody.toString();
+        return requestBody.toString().getBytes();
     }
 }

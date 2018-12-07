@@ -4,12 +4,16 @@ import net.schmizz.sshj.sftp.RemoteFile;
 import net.schmizz.sshj.sftp.RemoteResourceInfo;
 import net.schmizz.sshj.sftp.SFTPClient;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.junit.Test;
-import uk.gov.hmcts.reform.sendletter.controllers.MediaTypes;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import uk.gov.hmcts.reform.sendletter.dsl.TestDsl;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -17,54 +21,38 @@ import static org.apache.commons.lang.time.DateUtils.addMilliseconds;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.util.DateUtil.now;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class ProcessMessageTest extends FunctionalTestSuite {
 
-    @Test
-    public void should_send_letter_and_upload_file_on_sftp_server_when_letter_contains_one_document_with_even_pages()
-        throws Exception {
-        String letterId = sendPrintLetterRequest(
-            signIn(),
-            sampleLetterRequestJson("letter_single_document.json", "two-page-template.html")
-        );
+    private TestDsl dsl;
 
-        try (SFTPClient sftp = getSftpClient()) {
-            RemoteResourceInfo sftpFile = waitForFileOnSftp(sftp, letterId);
-
-            assertThat(sftpFile.getName()).matches(getFileNamePattern(letterId));
-
-            if (!isEncryptionEnabled) {
-                validatePdfFile(letterId, sftp, sftpFile, 2);
-            }
-        }
+    @Override
+    void initDsl() {
+        dsl = TestDsl.getInstance(config);
     }
 
-    @Test
-    public void should_send_letter_and_upload_file_on_sftp_server_when_letter_contains_one_document_with_odd_pages()
-        throws Exception {
-        String letterId = sendPrintLetterRequest(
-            signIn(),
-            sampleLetterRequestJson("letter_single_document.json", "one-page-template.html")
+    static Stream<Arguments> templateProvider() {
+        return Stream.of(
+            arguments("letter_single_document.json", "two-page-template.html", 2),
+            arguments("letter_single_document.json", "one-page-template.html", 2),
+            arguments("letter_two_documents.json", "two-page-template.html", 4),
+            arguments("letter_two_documents.json", "one-page-template.html", 4)
         );
-
-        try (SFTPClient sftp = getSftpClient()) {
-            RemoteResourceInfo sftpFile = waitForFileOnSftp(sftp, letterId);
-
-            assertThat(sftpFile.getName()).matches(getFileNamePattern(letterId));
-
-            if (!isEncryptionEnabled) {
-                validatePdfFile(letterId, sftp, sftpFile, 2);
-            }
-        }
     }
 
-    @Test
-    public void should_send_letter_and_upload_file_on_sftp_server_when_letter_contains_two_documents_with_even_pages()
-        throws Exception {
-        String letterId = sendPrintLetterRequest(
-            signIn(),
-            sampleLetterRequestJson("letter_two_documents.json", "two-page-template.html")
-        );
+    @DisplayName("Should send letter and upload file to SFTP server")
+    @ParameterizedTest
+    @MethodSource("templateProvider")
+    public void sendLetterWithTemplate(
+        String requestBodyFilename,
+        String templateFilename,
+        int numberOfDocuments
+    ) throws Exception {
+        String letterId = dsl
+            .login()
+            .withBodyTemplate(requestBodyFilename, templateFilename)
+            .sendLetter();
 
         try (SFTPClient sftp = getSftpClient()) {
             RemoteResourceInfo sftpFile = waitForFileOnSftp(sftp, letterId);
@@ -72,26 +60,7 @@ public class ProcessMessageTest extends FunctionalTestSuite {
             assertThat(sftpFile.getName()).matches(getFileNamePattern(letterId));
 
             if (!isEncryptionEnabled) {
-                validatePdfFile(letterId, sftp, sftpFile, 4);
-            }
-        }
-    }
-
-    @Test
-    public void should_send_letter_and_upload_file_on_sftp_server_when_letter_contains_two_documents_with_odd_pages()
-        throws Exception {
-        String letterId = sendPrintLetterRequest(
-            signIn(),
-            sampleLetterRequestJson("letter_two_documents.json", "one-page-template.html")
-        );
-
-        try (SFTPClient sftp = getSftpClient()) {
-            RemoteResourceInfo sftpFile = waitForFileOnSftp(sftp, letterId);
-
-            assertThat(sftpFile.getName()).matches(getFileNamePattern(letterId));
-
-            if (!isEncryptionEnabled) {
-                validatePdfFile(letterId, sftp, sftpFile, 4);
+                validatePdfFile(letterId, sftp, sftpFile, numberOfDocuments);
             }
         }
     }
@@ -147,11 +116,6 @@ public class ProcessMessageTest extends FunctionalTestSuite {
 
             return new PdfFile(pdfName, pdfContent);
         }
-    }
-
-    @Override
-    String getContentType() {
-        return MediaTypes.LETTER_V1;
     }
 
     private static class PdfFile {

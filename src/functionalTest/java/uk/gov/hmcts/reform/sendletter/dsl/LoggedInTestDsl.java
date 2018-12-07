@@ -15,7 +15,7 @@ public class LoggedInTestDsl {
 
     private final String s2sToken;
 
-    private ThrowingSupplier<String> requestBody = () -> null;
+    private ThrowingSupplier<byte[]> requestBody = () -> null;
 
     LoggedInTestDsl(Config config, String s2sToken) {
         this.sendLetterApi = new SendLetterApi(config);
