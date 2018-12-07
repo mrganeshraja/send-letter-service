@@ -15,7 +15,7 @@ public class FtpTestDsl {
 
     private final Ftp ftp;
 
-    private final int maxWaitForFtpFileInMs;
+    private final Integer maxWaitForFtpFileInMs;
 
     private RemoteResourceInfo remoteResourceInfo = null;
 

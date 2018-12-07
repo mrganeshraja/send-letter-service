@@ -3,8 +3,6 @@ package uk.gov.hmcts.reform.sendletter.dsl;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-import java.util.function.Function;
-
 import static com.typesafe.config.ConfigException.Missing;
 
 class ConfigWrapper {
@@ -20,20 +18,24 @@ class ConfigWrapper {
     }
 
     Boolean getBoolean(String path) {
-        return nullWrapper(config::getBoolean, path);
+        String value = nullWrapper(path);
+
+        return value == null ? null : Boolean.valueOf(value);
     }
 
     Integer getInt(String path) {
-        return nullWrapper(config::getInt, path);
+        String value = nullWrapper(path);
+
+        return value == null ? null : Integer.valueOf(value);
     }
 
     String getString(String path) {
-        return nullWrapper(config::getString, path);
+        return nullWrapper(path);
     }
 
-    private <T> T nullWrapper(Function<String, T> getter, String path) {
+    private String nullWrapper(String path) {
         try {
-            return getter.apply(path);
+            return config.getString(path);
         } catch (Missing missingException) {
             return null;
         }
