@@ -40,8 +40,8 @@ public class FtpTestDsl {
     public void validate(SFTPClient sftp, String letterId, int numberOfPages) throws IOException {
         FtpFileValidator validator = new FtpFileValidator(config, letterId);
         PdfFile pdfFile = validator.isEncryptionEnabled()
-            ? ftp.processZipFile(sftp, remoteResourceInfo)
-            : PdfFile.empty();
+            ? PdfFile.empty()
+            : ftp.processZipFile(sftp, remoteResourceInfo);
 
         validator
             .assertFileNameMatch(remoteResourceInfo.getName(), validator::getFtpFileNamePattern)
