@@ -48,7 +48,8 @@ public class LetterChecksumGeneratorTest {
         Supplier<LetterWithPdfsRequest> letterSupplier =
             () -> new LetterWithPdfsRequest(
                 asList(
-                    "foo", "bar"
+                    "foo".getBytes(),
+                    "bar".getBytes()
                 ),
                 "print-job-1234",
                 ImmutableMap.of(
@@ -105,7 +106,10 @@ public class LetterChecksumGeneratorTest {
     public void should_return_different_md5_checksum_hex_for_different_letter_with_pdf_objects() {
 
         LetterWithPdfsRequest letter1 = new LetterWithPdfsRequest(
-            asList("foo", "bar"),
+            asList(
+                "foo".getBytes(),
+                "bar".getBytes()
+            ),
             "print-job-1234",
             ImmutableMap.of(
                 "doc_type", "my doc type",
@@ -114,7 +118,10 @@ public class LetterChecksumGeneratorTest {
         );
 
         LetterWithPdfsRequest letter2 = new LetterWithPdfsRequest(
-            asList("foo", "bar!"),
+            asList(
+                "foo".getBytes(),
+                "bar!".getBytes()
+            ),
             "print-job-1234",
             ImmutableMap.of(
                 "doc_type", "my doc type",

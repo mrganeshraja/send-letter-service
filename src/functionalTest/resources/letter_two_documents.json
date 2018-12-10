@@ -1,0 +1,43 @@
+{
+  "documents": [
+    {
+      "template": "{{template}}",
+      "values": {
+        "defendantFullName": "Foo1 Bar1",
+        "claimReferenceNumber": "000MC001",
+        "defendantPin": "my-pin1",
+        "defendantAddress": {
+          "line1": "Level 6",
+          "line2": "102 Petty France",
+          "line3": "Westminster",
+          "city": "London",
+          "postcode": "SW1H 9AJ"
+        },
+        "claimTotalAmount": "£80.89",
+        "responseDeadline": "3 April 2018",
+        "frontendBaseURL": "https://civil-money-claims.co.uk",
+        "claimantFullName": "Foo Bar"
+      }
+    },
+    {
+      "template": "{{template}}",
+      "values": {
+        "defendantFullName": "Foo2 Bar2",
+        "claimReferenceNumber": "000MC002",
+        "defendantPin": "my-pin2",
+        "defendantAddress": {
+          "line1": "Level 6",
+          "line2": "102 Petty France",
+          "line3": "Westminster",
+          "city": "London",
+          "postcode": "SW1H 9AJ"
+        },
+        "claimTotalAmount": "£90.89",
+        "responseDeadline": "3 April 2018",
+        "frontendBaseURL": "https://civil-money-claims.co.uk",
+        "claimantFullName": "Foo Bar"
+      }
+    }
+  ],
+  "type": "smoke_test"
+}

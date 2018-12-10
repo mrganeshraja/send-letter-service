@@ -2,10 +2,8 @@ package uk.gov.hmcts.reform.sendletter.services.pdf;
 
 import org.apache.http.util.Asserts;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.reform.sendletter.exception.InvalidPdfException;
 import uk.gov.hmcts.reform.sendletter.model.in.Document;
 
-import java.util.Base64;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -34,15 +32,13 @@ public class PdfCreator {
         return PdfMerger.mergeDocuments(docs);
     }
 
-    public byte[] createFromBase64Pdfs(List<String> base64encodedDocs) {
-        Asserts.notNull(base64encodedDocs, "base64encodedDocs");
+    public byte[] createFromBase64Pdfs(List<byte[]> base64decodedDocs) {
+        Asserts.notNull(base64decodedDocs, "base64decodedDocs");
 
-        List<byte[]> docs =
-            base64encodedDocs
-                .stream()
-                .map(this::decodePdf)
-                .map(duplexPreparator::prepare)
-                .collect(toList());
+        List<byte[]> docs = base64decodedDocs
+            .stream()
+            .map(duplexPreparator::prepare)
+            .collect(toList());
 
         return PdfMerger.mergeDocuments(docs);
     }
@@ -50,14 +46,6 @@ public class PdfCreator {
     private byte[] generatePdf(Document document) {
         synchronized (PdfCreator.class) {
             return converter.apply(document.template.getBytes(), document.values);
-        }
-    }
-
-    private byte[] decodePdf(String base64encodedPdf) {
-        try {
-            return Base64.getDecoder().decode(base64encodedPdf);
-        } catch (IllegalArgumentException exc) {
-            throw new InvalidPdfException(exc);
         }
     }
 }

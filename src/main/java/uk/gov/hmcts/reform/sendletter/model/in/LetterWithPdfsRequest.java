@@ -19,7 +19,7 @@ public class LetterWithPdfsRequest implements Serializable, ILetterRequest {
      */
     @ApiModelProperty(value = "List of base64 encoded pdfs to be printed. Maximum allowed is 10", required = true)
     @Size(min = 1, max = 10)
-    public final List<String> documents;
+    public final List<byte[]> documents;
 
     @ApiModelProperty(value = "Type to be used by Xerox to print documents", required = true)
     @NotEmpty
@@ -29,7 +29,7 @@ public class LetterWithPdfsRequest implements Serializable, ILetterRequest {
     public final Map<String, Object> additionalData;
 
     public LetterWithPdfsRequest(
-        @JsonProperty("documents") List<String> documents,
+        @JsonProperty("documents") List<byte[]> documents,
         @JsonProperty("type") String type,
         @JsonProperty("additional_data") Map<String, Object> additionalData
     ) {

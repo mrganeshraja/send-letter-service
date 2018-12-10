@@ -9,17 +9,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.reform.sendletter.controllers.MediaTypes;
-import uk.gov.hmcts.reform.sendletter.exception.InvalidPdfException;
 import uk.gov.hmcts.reform.sendletter.model.in.LetterWithPdfsRequest;
 import uk.gov.hmcts.reform.sendletter.services.AuthService;
 import uk.gov.hmcts.reform.sendletter.services.LetterService;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.io.Resources.getResource;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -69,19 +66,6 @@ public class SendLetterWithPdfsControllerTest {
 
         // then
         verify(authService).authenticate(eq(authHeader));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public void should_return_400_status_if_service_throws_InvalidPdfException() throws Exception {
-        given(authService.authenticate(anyString())).willReturn("some_service_name");
-        given(letterService.send(any(LetterWithPdfsRequest.class), anyString())).willThrow(InvalidPdfException.class);
-
-        // when
-        MvcResult result = sendLetter(validJson).andReturn();
-
-        // then
-        assertThat(result.getResponse().getStatus()).isEqualTo(400);
     }
 
     private ResultActions sendLetter(String json) throws Exception {

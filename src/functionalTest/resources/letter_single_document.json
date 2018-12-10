@@ -1,0 +1,24 @@
+{
+  "documents": [
+    {
+      "template": "{{template}}",
+      "values": {
+        "defendantFullName": "Foo Bar",
+        "claimReferenceNumber": "000MC001",
+        "defendantPin": "my-pin",
+        "defendantAddress": {
+          "line1": "Level 6",
+          "line2": "102 Petty France",
+          "line3": "Westminster",
+          "city": "London",
+          "postcode": "SW1H 9AJ"
+        },
+        "claimTotalAmount": "£80.89",
+        "responseDeadline": "3 April 2018",
+        "frontendBaseURL": "https://civil-money-claims.co.uk",
+        "claimantFullName": "Foo Bar"
+      }
+    }
+  ],
+  "type": "smoke_test"
+}

@@ -15,8 +15,8 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import uk.gov.hmcts.reform.authorisation.exceptions.InvalidTokenException;
 import uk.gov.hmcts.reform.logging.exception.AbstractLoggingException;
+import uk.gov.hmcts.reform.sendletter.exception.DuplexException;
 import uk.gov.hmcts.reform.sendletter.exception.InternalServerException;
-import uk.gov.hmcts.reform.sendletter.exception.InvalidPdfException;
 import uk.gov.hmcts.reform.sendletter.exception.LetterNotFoundException;
 import uk.gov.hmcts.reform.sendletter.exception.UnauthenticatedException;
 import uk.gov.hmcts.reform.sendletter.model.out.errors.FieldError;
@@ -77,8 +77,9 @@ public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
         return status(BAD_REQUEST).body("Exception occurred while parsing letter contents");
     }
 
-    @ExceptionHandler(InvalidPdfException.class)
+    @ExceptionHandler(DuplexException.class)
     protected ResponseEntity<String> handleInvalidPdfException() {
+        // only then pdf is actually checked hence invalid pdf message
         return status(BAD_REQUEST).body("Invalid pdf");
     }
 

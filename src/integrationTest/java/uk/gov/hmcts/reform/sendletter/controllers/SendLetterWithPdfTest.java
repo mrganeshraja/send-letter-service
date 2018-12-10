@@ -43,4 +43,36 @@ public class SendLetterWithPdfTest {
                 status().isOk()
             );
     }
+
+    @Test
+    public void should_return_400_when_invalid_pdf_field_is_sent() throws Exception {
+        String json = Resources.toString(getResource("letter-with-invalid-pdf.json"), UTF_8);
+
+        mvc
+            .perform(
+                post("/letters")
+                    .header("ServiceAuthorization", "auth-header-value")
+                    .contentType(MediaTypes.LETTER_V2)
+                    .content(json)
+            )
+            .andExpect(
+                status().isBadRequest()
+            );
+    }
+
+    @Test
+    public void should_return_400_when_not_pdf_field_is_sent() throws Exception {
+        String json = Resources.toString(getResource("letter-with-not-pdf.json"), UTF_8);
+
+        mvc
+            .perform(
+                post("/letters")
+                    .header("ServiceAuthorization", "auth-header-value")
+                    .contentType(MediaTypes.LETTER_V2)
+                    .content(json)
+            )
+            .andExpect(
+                status().isBadRequest()
+            );
+    }
 }
