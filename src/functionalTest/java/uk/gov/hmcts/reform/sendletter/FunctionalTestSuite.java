@@ -21,17 +21,18 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.zip.ZipInputStream;
 
 import static com.google.common.io.Resources.getResource;
+import static com.google.common.io.Resources.toByteArray;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RunWith(SpringRunner.class)
-@SuppressWarnings("PMD.AbstractClassWithoutAbstractMethod")
 @TestPropertySource("classpath:application.properties")
 public abstract class FunctionalTestSuite {
 
@@ -107,9 +108,9 @@ public abstract class FunctionalTestSuite {
             .given()
             .relaxedHTTPSValidation()
             .header("ServiceAuthorization", "Bearer " + jwt)
-            .header(CONTENT_TYPE, APPLICATION_JSON_VALUE)
+            .header(CONTENT_TYPE, getContentType())
             .baseUri(sendLetterServiceUrl)
-            .body(jsonBody)
+            .body(jsonBody.getBytes())
             .when()
             .post("/letters")
             .then()
@@ -134,6 +135,13 @@ public abstract class FunctionalTestSuite {
         }
 
         return object.toString();
+    }
+
+    protected String samplePdfLetterRequestJson(String requestBodyFilename) throws IOException {
+        String requestBody = Resources.toString(getResource(requestBodyFilename), Charsets.UTF_8);
+        byte[] pdf = toByteArray(getResource("test.pdf"));
+
+        return requestBody.replace("{{pdf}}", new String(Base64.getEncoder().encode(pdf)));
     }
 
     protected SFTPClient getSftpClient() throws IOException {
@@ -191,4 +199,6 @@ public abstract class FunctionalTestSuite {
             Pattern.quote(letterId)
         );
     }
+
+    abstract String getContentType();
 }
