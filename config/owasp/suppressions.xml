@@ -22,6 +22,7 @@
         <gav regex="true">^org\.bouncycastle:bcpg-jdk15on:1\.60$</gav>
         <cve>CVE-2001-0381</cve>
         <cve>CVE-2005-0366</cve>
+        <cve>CVE-2001-0265</cve>
     </suppress>
 
     <!-- not used by server -->
