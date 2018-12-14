@@ -63,6 +63,8 @@ ftp:
       folder: CMC
     - service: send_letter_tests
       folder: BULKPRINT
+    - service: divorce_front_end
+      folder: DIVORCE
 
 scheduling:
   enabled: ${SCHEDULING_ENABLED:false}
